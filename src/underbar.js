@@ -351,8 +351,6 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
-
-
     var obj, arg;
     obj = {};
 
@@ -391,6 +389,18 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+  	var arr, id,n; 
+  	arr = [];
+  	n = array.length;
+  	for (var i=0;i<n;i++){
+  		id = Math.floor(Math.random()*(n+1));
+  		if (!arr[id]){
+  			arr[id]= array[i];
+  		} else{
+  			i--;
+  		}
+  	}
+  	return arr;
   };
 
 
@@ -405,6 +415,15 @@
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
   _.invoke = function(collection, functionOrKey, args) {
+  	var method;
+  	return _.map (collection, function (element, i){
+  		if (typeof functionOrKey === "string"){
+  			method = element[functionOrKey];
+  		} else {
+  			method = functionOrKey;
+  		} 
+  		return method.apply (element, args);
+  	})
   };
 
   // Sort the object's values by a criterion produced by an iterator.
@@ -412,6 +431,16 @@
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
+  	if (typeof collection[0] === "string"){
+  		return collection.sort(function(a,b) {
+		    return a[iterator] - b[iterator];
+			});
+  	}
+  	else{
+  		return collection.sort(function(a,b) {
+		    return iterator(a) - iterator(b);
+			});
+  	}
   };
 
   // Zip together two or more arrays with elements of the same index
@@ -420,6 +449,19 @@
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+  	var arr, elementArr;
+  	var longestArray = Array.prototype.slice.call(arguments).sort(function(a,b) {return b.length-a.length})[0].length;
+  	arr = [];
+  	elementArr = [];
+  	
+  	for (var i = 0; i < longestArray; i++){
+  		elementArr = [];
+  		for (var j = 0; j < arguments.length; j++){
+  			elementArr.push(arguments[j][i]);
+  		}
+  		arr.push(elementArr);
+  	}
+  	return arr;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
@@ -427,16 +469,98 @@
   //
   // Hint: Use Array.isArray to check if something is an array
   _.flatten = function(nestedArray, result) {
+    var arr = [];   
+
+    var simplify = function(array) {
+      _.each(array, function(elementToSimplify) {
+        if (!Array.isArray(elementToSimplify)) {
+          arr.push(elementToSimplify);
+        } else {
+            simplify(elementToSimplify);
+        }
+      });
+    };
+
+    simplify(nestedArray);
+    return arr;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
   _.intersection = function() {
+  	// var args = Array.prototype.slice.call(arguments)
+ 		// _.each (args, function (arg, i){
+ 		// 	_.each (arg, function (element,j){
+ 		// var args = Array.prototype.slice.call(arguments)
+  	// var shortestArray = Array.prototype.slice.call(arguments).sort(function(a,b) {return a.length-b.length})[0].length;
+ 		// for (var i= 0;i<args;i++){
+ 		// 	for (var j= 0;j<shortestArray;j++)
+ 		// }
+ 		// 	})
+ 		// })
+ 	// 	var box=[];
+ 	// 	var args = Array.prototype.slice.call(arguments)
+  // 	var shortestArray = Array.prototype.slice.call(arguments).sort(function(a,b) {return a.length-b.length})[0].length;
+ 	// 	for (var i = 0;i<shortestArray;i++){
+ 	// 		for (var j = 1;j<args.length;j++){
+ 	// 			for (var k = 0;k<args[j].length;k++){
+ 	// 				if(args[0][i]===args[j][k]){
+ 	// 					box.push(args[j][k])
+ 	// 				}
+ 	// 			}
+ 	// 		}
+ 	// 	}
+ 	// 	return box;
+ 	// };
+
+ 	  var argumentsArray = Array.prototype.slice.call(arguments);
+
+    var result = [];
+
+    _.each(argumentsArray[0], function(item) {
+        var isShared = false;
+
+      for (var i=1; i<argumentsArray.length; i++) {
+        _.each(argumentsArray[i], function(check) {
+          if (item === check) {
+            isShared = true;
+          }
+        });
+      }
+
+      if (isShared) {
+        result.push(item);
+      }
+
+    });
+
+    return result;
   };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
   _.difference = function(array) {
+    var argumentsArray = Array.prototype.slice.call(arguments);
+    var results = [];
+
+    _.each(array, function(item) {
+      var isUnique = true
+
+      for (var i=1; i<argumentsArray.length; i++) {
+        for (var j=0; j<argumentsArray[i].length; j++) {
+          if (item === argumentsArray[i][j]) {
+            isUnique = false;
+          }
+        }
+      }
+
+      if (isUnique) {
+        results.push(item);
+      }
+
+    });
+
+    return results;
   };
 
   // Returns a function, that, when invoked, will only be triggered at most once
